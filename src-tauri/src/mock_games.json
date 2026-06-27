@@ -1,0 +1,68 @@
+[
+  {
+    "id": "cosmo-explorer",
+    "name": "Cosmo Explorer",
+    "icon_url": "https://img.icons8.com/neon/96/space-ship.png",
+    "description": "Embark on an interstellar journey to explore uncharted galaxies, gather resources, and build your space empire in this sci-fi sandbox adventure.",
+    "versions": [
+      {
+        "version": "v1.2.0 (Latest)",
+        "url": "mock://cosmo-explorer/v1.2.0",
+        "launch_path": "CosmoExplorer.bat",
+        "size_bytes": 104857600
+      },
+      {
+        "version": "v1.1.0",
+        "url": "mock://cosmo-explorer/v1.1.0",
+        "launch_path": "CosmoExplorer.bat",
+        "size_bytes": 83886080
+      },
+      {
+        "version": "v1.0.0",
+        "url": "mock://cosmo-explorer/v1.0.0",
+        "launch_path": "CosmoExplorer.bat",
+        "size_bytes": 78643200
+      }
+    ]
+  },
+  {
+    "id": "cyber-sentinel",
+    "name": "Cyber Sentinel",
+    "icon_url": "https://img.icons8.com/neon/96/cyber-security.png",
+    "description": "Hack your way through a futuristic metropolis dominated by mega-corporations. Upgrade your cybernetics and outsmart the grid in this tactical action-RPG.",
+    "versions": [
+      {
+        "version": "v2.1.0 (Latest)",
+        "url": "mock://cyber-sentinel/v2.1.0",
+        "launch_path": "CyberSentinel.bat",
+        "size_bytes": 157286400
+      },
+      {
+        "version": "v2.0.0",
+        "url": "mock://cyber-sentinel/v2.0.0",
+        "launch_path": "CyberSentinel.bat",
+        "size_bytes": 125829120
+      }
+    ]
+  },
+  {
+    "id": "medieval-mayhem",
+    "name": "Medieval Mayhem",
+    "icon_url": "https://img.icons8.com/neon/96/shield.png",
+    "description": "A chaotic physics-based multiplayer brawler set in a medieval arena. Throw swords, shields, and chickens to survive.",
+    "versions": [
+      {
+        "version": "v1.0.0 (Latest)",
+        "url": "mock://medieval-mayhem/v1.0.0",
+        "launch_path": "MedievalMayhem.bat",
+        "size_bytes": 52428800
+      },
+      {
+        "version": "v0.9.0-alpha",
+        "url": "mock://medieval-mayhem/v0.9.0-alpha",
+        "launch_path": "MedievalMayhem.bat",
+        "size_bytes": 47185920
+      }
+    ]
+  }
+]
