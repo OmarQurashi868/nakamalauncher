@@ -910,3 +910,14 @@ body {
 .animate-spin {
   animation: spin 1s linear infinite;
 }
+
+/* Update dots styling */
+.update-dot {
+  width: 8px;
+  height: 8px;
+  background-color: var(--c-accent);
+  border-radius: 50%;
+  display: inline-block;
+  flex-shrink: 0;
+  box-shadow: 0 0 6px var(--c-accent);
+}
