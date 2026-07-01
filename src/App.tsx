@@ -1040,17 +1040,18 @@ function App() {
                           </span>
                           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                             <span style={{ color: "var(--text-secondary)" }}>{formatBytes(v.size_bytes)}</span>
-                            <button
-                              className="btn-delete-icon"
-                              title={v.staged ? "Cannot delete staged version" : "Delete version"}
-                              disabled={v.staged}
-                              onClick={() => setDeleteModal({
-                                type: "version", gameName: selectedGame.name, label: v.version, sizeBytes: v.size_bytes
-                              })}
-                              style={{ background: "none", border: "none", color: v.staged ? "var(--text-tertiary)" : "var(--text-secondary)", cursor: v.staged ? "not-allowed" : "pointer", padding: "2px" }}
-                            >
-                              <Trash2 size={14} />
-                            </button>
+                            <span title={v.staged ? "This version is staged" : "Delete version"}>
+                              <button
+                                className="btn-delete-icon"
+                                disabled={v.staged}
+                                onClick={() => setDeleteModal({
+                                  type: "version", gameName: selectedGame.name, label: v.version, sizeBytes: v.size_bytes
+                                })}
+                                style={{ background: "none", border: "none", color: v.staged ? "var(--text-tertiary)" : "var(--text-secondary)", cursor: v.staged ? "not-allowed" : "pointer", padding: "2px" }}
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </span>
                           </div>
                         </div>
                       ))}
@@ -1069,17 +1070,18 @@ function App() {
                           </span>
                           <div style={{ display: "flex", alignItems: "center", gap: "8px" }}>
                             <span style={{ color: "var(--text-secondary)" }}>{formatBytes(m.size_bytes)}</span>
-                            <button
-                              className="btn-delete-icon"
-                              title={m.staged ? "Cannot delete applied modpack" : "Delete modpack"}
-                              disabled={m.staged}
-                              onClick={() => setDeleteModal({
-                                type: "modpack", gameName: selectedGame.name, label: m.modpack_title, sizeBytes: m.size_bytes
-                              })}
-                              style={{ background: "none", border: "none", color: m.staged ? "var(--text-tertiary)" : "var(--text-secondary)", cursor: m.staged ? "not-allowed" : "pointer", padding: "2px" }}
-                            >
-                              <Trash2 size={14} />
-                            </button>
+                            <span title={m.staged ? "This modpack is applied" : "Delete modpack"}>
+                              <button
+                                className="btn-delete-icon"
+                                disabled={m.staged}
+                                onClick={() => setDeleteModal({
+                                  type: "modpack", gameName: selectedGame.name, label: m.modpack_title, sizeBytes: m.size_bytes
+                                })}
+                                style={{ background: "none", border: "none", color: m.staged ? "var(--text-tertiary)" : "var(--text-secondary)", cursor: m.staged ? "not-allowed" : "pointer", padding: "2px" }}
+                              >
+                                <Trash2 size={14} />
+                              </button>
+                            </span>
                           </div>
                         </div>
                       ))}
