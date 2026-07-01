@@ -4,20 +4,26 @@
     "name": "Cosmo Explorer",
     "icon_url": "https://img.icons8.com/neon/96/space-ship.png",
     "description": "Embark on an interstellar journey to explore uncharted galaxies, gather resources, and build your space empire in this sci-fi sandbox adventure.",
+    "notes": null,
+    "title_notes": "A community favorite since alpha — join the Discord for multiplayer events!",
+    "app_id": "123456",
     "versions": [
       {
+        "uuid": "mock-cosmo-v120",
         "version": "v1.2.0 (Latest)",
         "url": "mock://cosmo-explorer/v1.2.0",
         "launch_path": "CosmoExplorer.bat",
         "size_bytes": 104857600
       },
       {
+        "uuid": "mock-cosmo-v110",
         "version": "v1.1.0",
         "url": "mock://cosmo-explorer/v1.1.0",
         "launch_path": "CosmoExplorer.bat",
         "size_bytes": 83886080
       },
       {
+        "uuid": "mock-cosmo-v100",
         "version": "v1.0.0",
         "url": "mock://cosmo-explorer/v1.0.0",
         "launch_path": "CosmoExplorer.bat",
@@ -30,14 +36,19 @@
     "name": "Cyber Sentinel",
     "icon_url": "https://img.icons8.com/neon/96/cyber-security.png",
     "description": "Hack your way through a futuristic metropolis dominated by mega-corporations. Upgrade your cybernetics and outsmart the grid in this tactical action-RPG.",
+    "notes": "Version 2.1.0 introduces ray-traced reflections and DLSS support.",
+    "title_notes": null,
+    "app_id": null,
     "versions": [
       {
+        "uuid": "mock-cyber-v210",
         "version": "v2.1.0 (Latest)",
         "url": "mock://cyber-sentinel/v2.1.0",
         "launch_path": "CyberSentinel.bat",
         "size_bytes": 157286400
       },
       {
+        "uuid": "mock-cyber-v200",
         "version": "v2.0.0",
         "url": "mock://cyber-sentinel/v2.0.0",
         "launch_path": "CyberSentinel.bat",
@@ -50,14 +61,19 @@
     "name": "Medieval Mayhem",
     "icon_url": "https://img.icons8.com/neon/96/shield.png",
     "description": "A chaotic physics-based multiplayer brawler set in a medieval arena. Throw swords, shields, and chickens to survive.",
+    "notes": null,
+    "title_notes": null,
+    "app_id": "789012",
     "versions": [
       {
+        "uuid": "mock-medieval-v100",
         "version": "v1.0.0 (Latest)",
         "url": "mock://medieval-mayhem/v1.0.0",
         "launch_path": "MedievalMayhem.bat",
         "size_bytes": 52428800
       },
       {
+        "uuid": "mock-medieval-v090",
         "version": "v0.9.0-alpha",
         "url": "mock://medieval-mayhem/v0.9.0-alpha",
         "launch_path": "MedievalMayhem.bat",

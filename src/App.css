@@ -71,7 +71,9 @@ body {
 }
 
 .logo-icon {
-  color: var(--c-accent);
+  width: 22px;
+  height: 22px;
+  border-radius: 4px;
 }
 
 .logo-section h1 {
