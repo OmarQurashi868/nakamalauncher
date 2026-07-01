@@ -418,6 +418,17 @@ body {
   max-width: 600px;
 }
 
+.details-title-note {
+  color: var(--c-text-2);
+  font-size: 0.78rem;
+  line-height: 1.5;
+  padding: 0.4rem 0.75rem;
+  background: var(--c-surface-2);
+  border-left: 2px solid var(--c-accent);
+  border-radius: 0 4px 4px 0;
+  max-width: 600px;
+}
+
 /* ─── VERSION CARD ───────────────────────────────────── */
 
 .version-card {
@@ -922,4 +933,35 @@ body {
   display: inline-block;
   flex-shrink: 0;
   box-shadow: 0 0 6px var(--c-accent);
+}
+
+/* ─── VERSION NOTES ───────────────────────────────────── */
+
+.version-notes {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  padding-top: 1rem;
+  border-top: 1px solid var(--c-border);
+}
+
+.version-note-item {
+  display: flex;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.78rem;
+  color: var(--c-text-2);
+  line-height: 1.5;
+}
+
+.version-note-label {
+  font-size: 0.65rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--c-text-3);
+  background: var(--c-surface-2);
+  padding: 0.15rem 0.45rem;
+  border-radius: 3px;
+  flex-shrink: 0;
 }

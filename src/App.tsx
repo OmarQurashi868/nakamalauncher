@@ -796,20 +796,11 @@ function App() {
                     </a>
                   )}
                   <p className="details-desc">{selectedGame.description}</p>
+                  {selectedGame.title_notes && (
+                    <p className="details-title-note">{selectedGame.title_notes}</p>
+                  )}
                 </div>
               </div>
-
-              {/* Notes */}
-              {(selectedGame.notes || selectedGame.title_notes) && (
-                <div className="notes-box" style={{
-                  background: "var(--bg-tertiary)", border: "1px solid var(--border-color)",
-                  borderRadius: "8px", padding: "12px 16px", marginBottom: "16px", fontSize: "13px",
-                  color: "var(--text-secondary)", lineHeight: "1.5",
-                }}>
-                  {selectedGame.title_notes && <p style={{ margin: "0 0 4px 0" }}>{selectedGame.title_notes}</p>}
-                  {selectedGame.notes && <p style={{ margin: 0, fontStyle: "italic" }}>Version note: {selectedGame.notes}</p>}
-                </div>
-              )}
 
               {/* Version & Action Panel */}
               <div className="version-card">
@@ -1021,6 +1012,24 @@ function App() {
                     </button>
                   </div>
                 )}
+
+                {/* Version & modpack notes */}
+                {(selectedGame.notes || selectedModpack?.notes) && (
+                  <div className="version-notes">
+                    {selectedGame.notes && (
+                      <div className="version-note-item">
+                        <span className="version-note-label">Version note</span>
+                        <span>{selectedGame.notes}</span>
+                      </div>
+                    )}
+                    {selectedModpack?.notes && (
+                      <div className="version-note-item">
+                        <span className="version-note-label">{selectedModpack.modpack_title}</span>
+                        <span>{selectedModpack.notes}</span>
+                      </div>
+                    )}
+                  </div>
+                )}
               </div>
 
               {/* Storage & Delete Section */}
@@ -1101,16 +1110,6 @@ function App() {
                 </div>
               )}
 
-              {/* Modpack notes */}
-              {selectedModpack?.notes && (
-                <div className="notes-box" style={{
-                  background: "var(--bg-tertiary)", border: "1px solid var(--border-color)",
-                  borderRadius: "8px", padding: "12px 16px", marginTop: "16px", fontSize: "13px",
-                  color: "var(--text-secondary)", lineHeight: "1.5",
-                }}>
-                  <strong>{selectedModpack.modpack_title}:</strong> {selectedModpack.notes}
-                </div>
-              )}
             </div>
           ) : (
             <div className="welcome-screen">
