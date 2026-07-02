@@ -738,6 +738,32 @@ async fn get_storage_sizes(
     Ok(results)
 }
 
+// ── Pause / Cancel helpers ─────────────────────────────────────────────
+
+/// Remove a job from the queue by key. Returns true if it was queued.
+fn remove_from_queue(manager: &DownloadManager, job_key: &str) -> bool {
+    let mut queue = manager.queue.lock().unwrap();
+    let before = queue.len();
+    queue.retain(|task| task.job_key != job_key);
+    let removed = queue.len() < before;
+    if removed {
+        let mut active = manager.active_count.lock().unwrap();
+        *active = active.saturating_sub(1);
+    }
+    removed
+}
+
+/// Send cancel signal and clean up the job entry.
+fn cancel_job(manager: &DownloadManager, job_key: &str) -> bool {
+    let mut jobs = manager.jobs.lock().unwrap();
+    if let Some(cancel_tx) = jobs.remove(job_key) {
+        let _ = cancel_tx.send(());
+        true
+    } else {
+        false
+    }
+}
+
 // ── Pause ──────────────────────────────────────────────────────────────
 
 #[tauri::command]
@@ -747,12 +773,12 @@ fn pause_download(
     version: String,
 ) -> Result<(), String> {
     let job_key = format!("{}:{}", game_id, version);
-    let mut jobs = game_manager.jobs.lock().unwrap();
-    if let Some(cancel_tx) = jobs.remove(&job_key) {
-        let _ = cancel_tx.send(());
+    let active = cancel_job(&game_manager, &job_key);
+    let queued = remove_from_queue(&game_manager, &job_key);
+    if active || queued {
         Ok(())
     } else {
-        Err("No active download found for this game version".to_string())
+        Err("No active or queued download found for this game version".to_string())
     }
 }
 
@@ -764,12 +790,12 @@ fn pause_download_modpack(
     modpack_title: String,
 ) -> Result<(), String> {
     let job_key = format!("{}:{}:{}", game_id, version, modpack_title);
-    let mut jobs = game_manager.jobs.lock().unwrap();
-    if let Some(cancel_tx) = jobs.remove(&job_key) {
-        let _ = cancel_tx.send(());
+    let active = cancel_job(&game_manager, &job_key);
+    let queued = remove_from_queue(&game_manager, &job_key);
+    if active || queued {
         Ok(())
     } else {
-        Err("No active download found for this modpack".to_string())
+        Err("No active or queued download found for this modpack".to_string())
     }
 }
 
@@ -781,16 +807,15 @@ async fn cancel_download(
     version: String,
     game_id: String,
 ) -> Result<(), String> {
-    // Try to pause first
     let job_key = format!("{}:{}", game_id, version);
-    {
-        let mut jobs = game_manager.jobs.lock().unwrap();
-        if let Some(cancel_tx) = jobs.remove(&job_key) {
-            let _ = cancel_tx.send(());
-        }
-    }
 
-    // Delete partial download file
+    // Signal cancel if actively downloading
+    cancel_job(&game_manager, &job_key);
+
+    // Remove from queue if still waiting
+    remove_from_queue(&game_manager, &job_key);
+
+    // Delete partial download file (whether it exists now or will be created by pre-empted task)
     let zip_tmp = downloads_dir(&game_folder).join(format!("{}_{}.zip.tmp",
         sanitize_filename(&game_name), sanitize_filename(&version)));
     if zip_tmp.exists() {
@@ -810,12 +835,9 @@ async fn cancel_download_modpack(
     modpack_title: String,
 ) -> Result<(), String> {
     let job_key = format!("{}:{}:{}", game_id, version, modpack_title);
-    {
-        let mut jobs = game_manager.jobs.lock().unwrap();
-        if let Some(cancel_tx) = jobs.remove(&job_key) {
-            let _ = cancel_tx.send(());
-        }
-    }
+
+    cancel_job(&game_manager, &job_key);
+    remove_from_queue(&game_manager, &job_key);
 
     let zip_tmp = downloads_dir(&game_folder).join(format!("{}_{}_modpack_{}.zip.tmp",
         sanitize_filename(&game_name), sanitize_filename(&version), sanitize_filename(&modpack_title)));
@@ -1026,6 +1048,11 @@ async fn perform_download(
 
     let zip_tmp = d_dir.join(format!("{}_{}.zip.tmp", sanitize_filename(&game_name), sanitize_filename(&version)));
 
+    // Check if already cancelled before doing any work (e.g. removed from queue)
+    if cancel_rx.try_recv().is_ok() {
+        return Ok(());
+    }
+
     if url.starts_with("mock://") {
         let target_dir = version_cache_dir(&game_folder, &game_name, &version);
         perform_mock_download(app, game_id, game_name, version, zip_tmp, target_dir, size_bytes, cancel_rx).await?;
@@ -1089,6 +1116,11 @@ async fn perform_download(
         tokio::select! {
             _ = &mut cancel_rx => {
                 let _ = file.flush().await;
+                drop(file);
+                // If no data was downloaded, clean up the empty temp file
+                if downloaded == 0 {
+                    let _ = tokio::fs::remove_file(&zip_tmp).await;
+                }
                 let _ = app.emit("download-progress", DownloadProgressPayload {
                     game_id: game_id.clone(), version: version.clone(), modpack_title: None,
                     downloaded_bytes: downloaded, total_bytes, speed_bytes_per_sec: 0.0,
@@ -1167,6 +1199,11 @@ async fn perform_modpack_download(
     let zip_tmp = d_dir.join(format!("{}_{}_modpack_{}.zip.tmp",
         sanitize_filename(&game_name), sanitize_filename(&version), sanitize_filename(&modpack_title)));
 
+    // Check if already cancelled before doing any work (e.g. removed from queue)
+    if cancel_rx.try_recv().is_ok() {
+        return Ok(());
+    }
+
     if url.starts_with("mock://") {
         let target_dir = modpack_cache_dir(&game_folder, &game_name, &modpack_title);
         perform_mock_modpack_download(app, game_id, version, modpack_title, zip_tmp, target_dir, size_bytes, cancel_rx).await?;
@@ -1229,6 +1266,11 @@ async fn perform_modpack_download(
     loop {
         tokio::select! {
             _ = &mut cancel_rx => {
+                let _ = file.flush().await;
+                drop(file);
+                if downloaded == 0 {
+                    let _ = tokio::fs::remove_file(&zip_tmp).await;
+                }
                 let _ = app.emit("download-progress", DownloadProgressPayload {
                     game_id: game_id.clone(), version: version.clone(), modpack_title: Some(modpack_title.clone()),
                     downloaded_bytes: downloaded, total_bytes, speed_bytes_per_sec: 0.0,
@@ -1331,6 +1373,11 @@ async fn perform_mock_download(
     size_bytes: u64,
     mut cancel_rx: oneshot::Receiver<()>,
 ) -> Result<(), String> {
+    // Check if already cancelled before doing any work
+    if cancel_rx.try_recv().is_ok() {
+        return Ok(());
+    }
+
     let mut downloaded = 0u64;
     if zip_tmp_path.exists() {
         if let Ok(metadata) = tokio::fs::metadata(&zip_tmp_path).await {
@@ -1354,6 +1401,11 @@ async fn perform_mock_download(
     while downloaded < size_bytes {
         tokio::select! {
             _ = &mut cancel_rx => {
+                let _ = file.flush().await;
+                drop(file);
+                if downloaded == 0 {
+                    let _ = tokio::fs::remove_file(&zip_tmp_path).await;
+                }
                 let _ = app.emit("download-progress", DownloadProgressPayload {
                     game_id: game_id.clone(), version: version.clone(), modpack_title: None,
                     downloaded_bytes: downloaded, total_bytes: size_bytes, speed_bytes_per_sec: 0.0,
@@ -1433,6 +1485,11 @@ async fn perform_mock_modpack_download(
     size_bytes: u64,
     mut cancel_rx: oneshot::Receiver<()>,
 ) -> Result<(), String> {
+    // Check if already cancelled before doing any work
+    if cancel_rx.try_recv().is_ok() {
+        return Ok(());
+    }
+
     let mut downloaded = 0u64;
     if zip_tmp_path.exists() {
         if let Ok(metadata) = tokio::fs::metadata(&zip_tmp_path).await {
@@ -1456,6 +1513,11 @@ async fn perform_mock_modpack_download(
     while downloaded < size_bytes {
         tokio::select! {
             _ = &mut cancel_rx => {
+                let _ = file.flush().await;
+                drop(file);
+                if downloaded == 0 {
+                    let _ = tokio::fs::remove_file(&zip_tmp_path).await;
+                }
                 let _ = app.emit("download-progress", DownloadProgressPayload {
                     game_id: game_id.clone(), version: version.clone(), modpack_title: Some(modpack_title.clone()),
                     downloaded_bytes: downloaded, total_bytes: size_bytes, speed_bytes_per_sec: 0.0,
