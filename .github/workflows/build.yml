@@ -2,7 +2,7 @@ name: Release
 
 on:
   push:
-    branches: [main]
+    tags: ['*']
 
 concurrency:
   group: release-${{ github.sha }}
@@ -18,13 +18,13 @@ jobs:
       matrix:
         include:
           - os: windows-latest
-            artifact: nakama-launcher-windows-exe
-            path: nakama-launcher.exe
+            artifact: NakamaLauncher-windows-exe
+            path: NakamaLauncher.exe
             build_args: --bundles nsis
 
           - os: ubuntu-latest
-            artifact: nakama-launcher-linux-appimage
-            path: nakama-launcher.AppImage
+            artifact: NakamaLauncher-linux-appimage
+            path: NakamaLauncher.AppImage
             build_args: --bundles appimage
 
     runs-on: ${{ matrix.os }}
@@ -66,14 +66,14 @@ jobs:
       - name: Prepare artifact (Windows)
         if: runner.os == 'Windows'
         shell: bash
-        run: cp src-tauri/target/release/nakama-launcher.exe nakama-launcher.exe
+        run: cp src-tauri/target/release/nakama-launcher.exe NakamaLauncher.exe
 
       - name: Prepare artifact (Linux)
         if: runner.os == 'Linux'
         shell: bash
         run: |
           appimage=$(ls src-tauri/target/release/bundle/appimage/*.AppImage | head -1)
-          cp "$appimage" nakama-launcher.AppImage
+          cp "$appimage" NakamaLauncher.AppImage
 
       - uses: actions/upload-artifact@v4
         with:
@@ -93,16 +93,12 @@ jobs:
       - name: Show artifacts
         run: find artifacts -type f -ls
 
-      - name: Set tag
-        id: tag
-        run: echo "name=build-${GITHUB_SHA::7}" >> $GITHUB_OUTPUT
-
       - uses: softprops/action-gh-release@v2
         with:
-          tag_name: ${{ steps.tag.outputs.name }}
-          name: "Build ${{ steps.tag.outputs.name }}"
+          tag_name: ${{ github.ref_name }}
+          name: "Release ${{ github.ref_name }}"
           body: |
-            Automated build from commit `${{ github.sha }}` on branch `${{ github.ref_name }}`.
+            Release `${{ github.ref_name }}` from commit `${{ github.sha }}`.
           files: artifacts/**/*
           draft: false
           prerelease: true
