@@ -1,6 +1,8 @@
 # NakamaLauncher
 
 NakamaLauncher is a lightweight desktop client built on Tauri, Rust, and Vanilla HTML/CSS/JS. It provides a simple frontend for downloading game versions and modpack archives from [NakamaServer](https://github.com/OmarQurashi868/nakamaserver), styled with an elegant dark theme based on the Obsidian design language.
+> [!NOTE]
+> This project does NOT provide any games or mods on its own, it needs to connect to a [NakamaServer](https://github.com/OmarQurashi868/nakamaserver) instance with archives uploaded to it through [NakamaAdmin](https://github.com/OmarQurashi868/nakamaadmin).
 
 ## Architecture
 
