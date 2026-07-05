@@ -527,15 +527,26 @@ function App() {
   };
 
   const applyPermutation = async (game: Game, ver: GameVersion, mp: ServerModpack | null) => {
+    setActiveOps((prev) => {
+      const next = new Set(prev);
+      next.add(game.id);
+      return next;
+    });
     try {
       await invoke("apply_permutation", {
         gameFolder: defaultGameFolder, gameId: game.id, gameName: game.name,
         version: ver.version, modpack: mp ? mp.modpack_title : null,
       });
-      await scanAllStatuses();
-      await scanStorageSizes();
     } catch (err: any) {
       alert("Failed to apply: " + err);
+    } finally {
+      await scanAllStatuses();
+      await scanStorageSizes();
+      setActiveOps((prev) => {
+        const next = new Set(prev);
+        next.delete(game.id);
+        return next;
+      });
     }
   };
 
@@ -583,6 +594,7 @@ function App() {
 
     const staged = stagedStates[selectedGame.name];
     const isStaged = staged &&
+      !staged.swap_phase &&
       staged.version === selectedVersion.version &&
       (staged.modpack || null) === (selectedModpack?.modpack_title || null);
 
@@ -853,7 +865,7 @@ function App() {
                 </div>
 
                 {/* Staged status indicator */}
-                {selectedVersion && stagedStates[selectedGame.name] && (
+                {selectedVersion && stagedStates[selectedGame.name] && !stagedStates[selectedGame.name].swap_phase && (
                   (() => {
                     const staged = stagedStates[selectedGame.name];
                     const isMatch = staged.version === selectedVersion.version &&

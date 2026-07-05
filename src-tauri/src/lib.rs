@@ -315,17 +315,81 @@ fn dir_size(path: &Path) -> u64 {
     total
 }
 
+fn rename_retry(src: &Path, dst: &Path) -> std::io::Result<()> {
+    let mut retries = 10;
+    let mut delay = std::time::Duration::from_millis(50);
+    loop {
+        match std::fs::rename(src, dst) {
+            Ok(()) => return Ok(()),
+            Err(e) => {
+                let os_err = e.raw_os_error();
+                // 5: Access Denied, 32: Sharing Violation (commonly held by antivirus/indexers on Windows)
+                let should_retry = os_err == Some(5) || os_err == Some(32);
+                if retries > 0 && should_retry {
+                    std::thread::sleep(delay);
+                    retries -= 1;
+                    delay = std::cmp::min(delay * 2, std::time::Duration::from_millis(500));
+                } else {
+                    return Err(e);
+                }
+            }
+        }
+    }
+}
+
+fn remove_dir_all_retry(path: &Path) -> std::io::Result<()> {
+    let mut retries = 10;
+    let mut delay = std::time::Duration::from_millis(50);
+    loop {
+        match std::fs::remove_dir_all(path) {
+            Ok(()) => return Ok(()),
+            Err(e) => {
+                let os_err = e.raw_os_error();
+                let should_retry = os_err == Some(5) || os_err == Some(32);
+                if retries > 0 && should_retry {
+                    std::thread::sleep(delay);
+                    retries -= 1;
+                    delay = std::cmp::min(delay * 2, std::time::Duration::from_millis(500));
+                } else {
+                    return Err(e);
+                }
+            }
+        }
+    }
+}
+
+fn remove_file_retry(path: &Path) -> std::io::Result<()> {
+    let mut retries = 10;
+    let mut delay = std::time::Duration::from_millis(50);
+    loop {
+        match std::fs::remove_file(path) {
+            Ok(()) => return Ok(()),
+            Err(e) => {
+                let os_err = e.raw_os_error();
+                let should_retry = os_err == Some(5) || os_err == Some(32);
+                if retries > 0 && should_retry {
+                    std::thread::sleep(delay);
+                    retries -= 1;
+                    delay = std::cmp::min(delay * 2, std::time::Duration::from_millis(500));
+                } else {
+                    return Err(e);
+                }
+            }
+        }
+    }
+}
+
 fn move_dir(src: &Path, dst: &Path) -> Result<(), String> {
     if !src.exists() {
         return Ok(());
     }
     if dst.exists() {
-        std::fs::remove_dir_all(dst).map_err(|e| format!("Failed to remove target before move: {}", e))?;
+        remove_dir_all_retry(dst).map_err(|e| format!("Failed to remove target before move: {}", e))?;
     }
     if let Some(parent) = dst.parent() {
         std::fs::create_dir_all(parent).map_err(|e| format!("Failed to create parent dir: {}", e))?;
     }
-    std::fs::rename(src, dst).map_err(|e| format!("Failed to move directory: {}", e))?;
+    rename_retry(src, dst).map_err(|e| format!("Failed to move directory: {}", e))?;
     Ok(())
 }
 
@@ -334,12 +398,12 @@ fn move_file(src: &Path, dst: &Path) -> Result<(), String> {
         return Ok(());
     }
     if dst.exists() {
-        std::fs::remove_file(dst).map_err(|e| format!("Failed to remove target file: {}", e))?;
+        remove_file_retry(dst).map_err(|e| format!("Failed to remove target file: {}", e))?;
     }
     if let Some(parent) = dst.parent() {
         std::fs::create_dir_all(parent).map_err(|e| format!("Failed to create parent dir: {}", e))?;
     }
-    std::fs::rename(src, dst).map_err(|e| format!("Failed to move file: {}", e))?;
+    rename_retry(src, dst).map_err(|e| format!("Failed to move file: {}", e))?;
     Ok(())
 }
 
